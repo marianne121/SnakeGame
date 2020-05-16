@@ -27,7 +27,10 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
 
     private Random r;
 
+    // starting size and coordinate
     private int xCoor = 10, yCoor = 10, size = 5;
+
+    private int tileSize = 20;
 
     private int ticks = 0;
 
@@ -62,11 +65,11 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
 
     public void tick() {
         if(snake.size() == 0) {
-            b = new BodyPart(xCoor, yCoor, 10);
+            b = new BodyPart(xCoor, yCoor, tileSize);
             snake.add(b);
         }
         ticks++;
-        if(ticks > 250000) {
+        if(ticks > 500000) {
             if (right) xCoor++;
             if (left) xCoor--;
             if (up) yCoor--;
@@ -74,7 +77,7 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
 
             ticks = 0;
 
-            b = new BodyPart(xCoor, yCoor, 10);
+            b = new BodyPart(xCoor, yCoor, tileSize);
             snake.add(b);
 
             if (snake.size() > size) {
@@ -82,10 +85,10 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
             }
         }
         if (apples.size() ==0) {
-            int xCoor = r.nextInt(149);
-            int yCoor = r.nextInt(149);
+            int xCoor = r.nextInt(WIDTH/tileSize);
+            int yCoor = r.nextInt(HEIGHT/tileSize);
 
-            apple = new Apple(xCoor, yCoor, 10);
+            apple = new Apple(xCoor, yCoor, tileSize);
             apples.add(apple);
         }
 
@@ -96,6 +99,22 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
                 i++;
             }
         }
+
+        // snake hits body
+        for (int i=0; i<snake.size(); i++) {
+            if(xCoor == snake.get(i).getxCoor() && yCoor==snake.get(i).getyCoor()){
+                if(i != snake.size() - 1) {
+                    System.out.println("Game Over!");
+                    stop();
+                }
+            }
+        }
+
+        // snake hits walls
+        if(xCoor < 0 || xCoor > WIDTH/tileSize || yCoor <0 || yCoor > HEIGHT/tileSize) {
+            System.out.println("Game Over!");
+            stop();
+        }
     }
 
     public void paint(Graphics g) {
@@ -104,11 +123,11 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
-       for (int i=0; i<WIDTH/10; i++) {
-           g.drawLine(i * 10, 0, i*10, HEIGHT);
+       for (int i=0; i<WIDTH/tileSize; i++) {
+           g.drawLine(i * tileSize, 0, i*tileSize, HEIGHT);
         }
-        for (int i=0; i<HEIGHT/10; i++) {
-            g.drawLine(0, i*10, HEIGHT, i*10);
+        for (int i=0; i<HEIGHT/tileSize; i++) {
+            g.drawLine(0, i*tileSize, WIDTH, i*tileSize);
         }
         for (int i = 0; i< snake.size(); i++) {
             snake.get(i).draw(g);
