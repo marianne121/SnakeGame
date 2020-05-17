@@ -25,6 +25,10 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
     private Apple apple;
     private ArrayList<Apple> apples;
 
+    private Menu mainMenu;
+    private DifficultyMenu difficultyMenu;
+    private GameOverMenu gameOverMenu;
+
     private Random r;
 
     // starting size and coordinate
@@ -34,11 +38,32 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
 
     private int ticks = 0;
 
+    private int speed;
+
+    // not a great idea to make these public but leave it for now
+    public static enum STATE {
+        MAINMENU,
+        DIFFICULTYMENU,
+        GAME,
+        GAMEOVER
+    };
+
+    public static STATE state = STATE.MAINMENU;
+
+    public static enum MODE {
+        EASY,
+        MEDIUM,
+        HARD
+    };
+
+    public static MODE mode = MODE.MEDIUM;
+
     public Gamepanel() {
         setFocusable(true);
 
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         addKeyListener(this);
+        this.addMouseListener(new MouseInput());
 
         snake = new ArrayList<BodyPart>();
         apples = new ArrayList<Apple>();
@@ -64,57 +89,71 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
     }
 
     public void tick() {
-        if(snake.size() == 0) {
-            b = new BodyPart(xCoor, yCoor, tileSize);
-            snake.add(b);
-        }
-        ticks++;
-        if(ticks > 500000) {
-            if (right) xCoor++;
-            if (left) xCoor--;
-            if (up) yCoor--;
-            if (down) yCoor++;
+        if(state == STATE.GAME) {
 
-            ticks = 0;
-
-            b = new BodyPart(xCoor, yCoor, tileSize);
-            snake.add(b);
-
-            if (snake.size() > size) {
-                snake.remove(0);
+            if(snake.size() == 0) {
+                b = new BodyPart(xCoor, yCoor, tileSize);
+                snake.add(b);
             }
-        }
-        if (apples.size() ==0) {
-            int xCoor = r.nextInt(WIDTH/tileSize);
-            int yCoor = r.nextInt(HEIGHT/tileSize);
-
-            apple = new Apple(xCoor, yCoor, tileSize);
-            apples.add(apple);
-        }
-
-        for(int i=0; i < apples.size(); i++) {
-            if(xCoor == apples.get(i).getxCoor() && yCoor == apples.get(i).getyCoor()) {
-                size++;
-                apples.remove(i);
-                i++;
+            ticks++;
+            if(mode == MODE.EASY) {
+                speed = 800000;
+            } else if (mode == MODE.MEDIUM) {
+                speed = 500000;
+            } else if (mode == MODE.HARD) {
+                speed = 250000;
             }
-        }
+            if(ticks > speed) {
+                if (right) xCoor++;
+                if (left) xCoor--;
+                if (up) yCoor--;
+                if (down) yCoor++;
 
-        // snake hits body
-        for (int i=0; i<snake.size(); i++) {
-            if(xCoor == snake.get(i).getxCoor() && yCoor==snake.get(i).getyCoor()){
-                if(i != snake.size() - 1) {
-                    System.out.println("Game Over!");
-                    stop();
+                ticks = 0;
+
+                b = new BodyPart(xCoor, yCoor, tileSize);
+                snake.add(b);
+
+                if (snake.size() > size) {
+                    snake.remove(0);
                 }
             }
+            if (apples.size() ==0) {
+                int xCoor = r.nextInt(WIDTH/tileSize);
+                int yCoor = r.nextInt(HEIGHT/tileSize);
+
+                apple = new Apple(xCoor, yCoor, tileSize);
+                apples.add(apple);
+            }
+
+            for(int i=0; i < apples.size(); i++) {
+                if(xCoor == apples.get(i).getxCoor() && yCoor == apples.get(i).getyCoor()) {
+                    size++;
+                    apples.remove(i);
+                    i++;
+                }
+            }
+
+            // snake hits body
+            for (int i=0; i<snake.size(); i++) {
+                if(xCoor == snake.get(i).getxCoor() && yCoor==snake.get(i).getyCoor()){
+                    if(i != snake.size() - 1) {
+                        System.out.println("Game Over!");
+//                        stop();
+                        state = STATE.GAMEOVER;
+                    }
+                }
+            }
+
+            // snake hits walls
+            if(xCoor < 0 || xCoor > WIDTH/tileSize || yCoor <0 || yCoor > HEIGHT/tileSize) {
+                System.out.println("Game Over!");
+//                stop();
+                resetGame();
+                state = STATE.GAMEOVER;
+            }
         }
 
-        // snake hits walls
-        if(xCoor < 0 || xCoor > WIDTH/tileSize || yCoor <0 || yCoor > HEIGHT/tileSize) {
-            System.out.println("Game Over!");
-            stop();
-        }
     }
 
     public void paint(Graphics g) {
@@ -123,19 +162,32 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
-       for (int i=0; i<WIDTH/tileSize; i++) {
-           g.drawLine(i * tileSize, 0, i*tileSize, HEIGHT);
-        }
-        for (int i=0; i<HEIGHT/tileSize; i++) {
-            g.drawLine(0, i*tileSize, WIDTH, i*tileSize);
-        }
-        for (int i = 0; i< snake.size(); i++) {
-            snake.get(i).draw(g);
-        }
-        for (int i =0; i< apples.size(); i++) {
-            apples.get(i).draw(g);
-        }
+        if(state == STATE.GAME) {
 
+            for (int i=0; i<WIDTH/tileSize; i++) {
+                g.drawLine(i * tileSize, 0, i*tileSize, HEIGHT);
+            }
+            for (int i=0; i<HEIGHT/tileSize; i++) {
+                g.drawLine(0, i*tileSize, WIDTH, i*tileSize);
+            }
+            for (int i = 0; i< snake.size(); i++) {
+
+                snake.get(i).draw(g);
+            }
+            for (int i =0; i< apples.size(); i++) {
+
+                apples.get(i).draw(g);
+            }
+        } else if (state == STATE.MAINMENU) {
+            mainMenu = new Menu(420, 200, 100);
+            mainMenu.draw(g);
+        } else if (state == STATE.DIFFICULTYMENU) {
+            difficultyMenu = new DifficultyMenu(420, 200, 100);
+            difficultyMenu.draw(g);
+        } else if (state == STATE.GAMEOVER) {
+            gameOverMenu = new GameOverMenu(420, HEIGHT/2, 100);
+            gameOverMenu.draw(g);
+        }
     }
 
     @Override
@@ -155,27 +207,38 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
         // pick up right click & snake not going towards the left
-        if(key == KeyEvent.VK_RIGHT && !left) {
-            right = true;
-            up = false;
-            down = false;
-        } else if(key == KeyEvent.VK_LEFT && !right) {
-            left = true;
-            up = false;
-            down = false;
-        } else if(key == KeyEvent.VK_UP && !down) {
-            up = true;
-            right = false;
-            left = false;
-        } else if(key == KeyEvent.VK_DOWN && !up) {
-            down = true;
-            right = false;
-            left = false;
+        if(state == STATE.GAME) {
+            if(key == KeyEvent.VK_RIGHT && !left) {
+                right = true;
+                up = false;
+                down = false;
+            } else if(key == KeyEvent.VK_LEFT && !right) {
+                left = true;
+                up = false;
+                down = false;
+            } else if(key == KeyEvent.VK_UP && !down) {
+                up = true;
+                right = false;
+                left = false;
+            } else if(key == KeyEvent.VK_DOWN && !up) {
+                down = true;
+                right = false;
+                left = false;
+            }
         }
+
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
 
     }
+
+    private void resetGame() {
+        xCoor = 10;
+        yCoor = 10;
+        size = 5;
+        ticks = 0;
+    }
+
 }
