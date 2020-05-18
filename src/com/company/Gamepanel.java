@@ -239,6 +239,12 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
         yCoor = 10;
         size = 5;
         ticks = 0;
+        snake = new ArrayList<BodyPart>();
+        apples = new ArrayList<Apple>();
+        up = false;
+        right = true;
+        left = false;
+        down = false;
     }
 
 }
