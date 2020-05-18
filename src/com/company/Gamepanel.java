@@ -140,6 +140,7 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
                     if(i != snake.size() - 1) {
                         System.out.println("Game Over!");
 //                        stop();
+                        resetGame();
                         state = STATE.GAMEOVER;
                     }
                 }
