@@ -32,7 +32,7 @@ public class Gamepanel extends JPanel implements Runnable, KeyListener {
     private Random r;
 
     // starting size and coordinate
-    private int xCoor = 10, yCoor = 10, size = 5;
+    private int xCoor = 10, yCoor = 10, size = 20;
 
     private int tileSize = 20;
 
