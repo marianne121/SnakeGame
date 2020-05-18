@@ -2,7 +2,7 @@
 <h3> Description </h3>
 
 A rendition of the one of our most recognisable childhood game - Snake. 
-
+<img src="GameDemo.png" alt="Demo" width="200"/>
 ![Snake Game Display](GameDemo.png)
 
 <h3> Technology Used </h3>
